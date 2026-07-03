@@ -1,0 +1,87 @@
+name: Encode Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_msg_id:
+        required: true
+        type: string
+      sub_msg_id:
+        required: false
+        type: string
+      audio_msg_id:
+        required: false
+        type: string
+      settings:
+        required: true
+        type: string
+      chat_id:
+        required: true
+        type: string
+      task_id:
+        required: true
+        type: string
+      bot_token:
+        required: true
+        type: string
+      api_id:
+        required: true
+        type: string
+      api_hash:
+        required: true
+        type: string
+      status_msg_id:
+        required: false
+        type: string
+      mode:
+        required: true
+        type: string
+      font_file_id:
+        required: false
+        type: string
+      wm_file_id:
+        required: false
+        type: string
+      thumb_file_id:
+        required: false
+        type: string
+
+jobs:
+  encode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fontconfig
+          pip install -q pyrogram tgcrypto pyaes nest_asyncio
+
+      - name: Encode via Pyrogram Worker
+        env:
+          INPUT_SETTINGS: ${{ inputs.settings }}
+          API_ID: ${{ inputs.api_id }}
+          API_HASH: ${{ inputs.api_hash }}
+          BOT_TOKEN: ${{ inputs.bot_token }}
+          CHAT_ID: ${{ inputs.chat_id }}
+          VIDEO_MSG_ID: ${{ inputs.video_msg_id }}
+          SUB_MSG_ID: ${{ inputs.sub_msg_id }}
+          AUDIO_MSG_ID: ${{ inputs.audio_msg_id }}
+          STATUS_MSG_ID: ${{ inputs.status_msg_id }}
+          TASK_ID: ${{ inputs.task_id }}
+          MODE: ${{ inputs.mode }}
+          FONT_FILE_ID: ${{ inputs.font_file_id }}
+          WM_FILE_ID: ${{ inputs.wm_file_id }}
+          THUMB_FILE_ID: ${{ inputs.thumb_file_id }}
+        run: python3 worker.py
+
+      - name: Cleanup
+        if: always()
+        run: rm -f input.* sub.* sub_mod.* audio.* wm.png thumb.jpg fonts/*.ttf 2>/dev/null || true
