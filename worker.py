@@ -188,9 +188,6 @@ async def main():
         a_path = await app.download_media(a_msg, file_name=f"audio.m4a", progress=make_prog(app, chat_id, msg_id, "Downloading", out_name, mode, task_id, user_name, user_id, res_val) if msg_id else None)
     
     cmd = ['ffmpeg', '-y', '-i', v_path]
-    
-    is_shell = False
-    custom_args = settings.get('custom_args', '')
 
     if mode in ['extractsubs', 'extractaudio']:
         if msg_id: await app.edit_message_text(chat_id, msg_id, f"🔍 Probing tracks...\nSpecs: {mode.upper()} | {res_val}{hidden_id}")
@@ -303,6 +300,9 @@ async def main():
             cmd += ['-filter_complex', fc]
         else:
             if vf_chains: cmd += ['-vf', ",".join(vf_chains)]
+        
+        is_shell = False
+        custom_args = settings.get('custom_args', '')
         
         if mode == 'customcmd' and custom_args:
             if '&&' in custom_args or custom_args.startswith('ffmpeg'):
